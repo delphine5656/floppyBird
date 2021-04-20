@@ -5,10 +5,10 @@ img.src = "media/flappy-bird-set.png";
 
 // réglages générales
 let gamePlaying = false; //on joue ou pas? ecran d'accueil ou pas
-const gravity = .5;
-const speed = 6.2; //vitesse des poteaux qui arrivent
+const gravity = .5; // vitesse de la gravity
+const speed = 5.2; //vitesse des poteaux qui arrivent
 const size = [51, 36]; //taille de l'oiseau largeur et hauteur
-const jump = -11.5; 
+const jump = -9.5; 
 const cTenth = (canvas.width / 10);
 // variable qui évolue au fil du jeux
     let index = 0, //pour créer l'effet d'optique
@@ -20,8 +20,8 @@ const cTenth = (canvas.width / 10);
 
     // pipe settings
 const pipeWidth = 78;
-const pipeGap = 270;
-const pipeLoc = () => (Math.random() * ((canvas.height - (pipeGap + pipeWidth)) - pipeWidth)) + pipeWidth;
+const pipeGap = 270; // ecart entre les poteaux
+const pipeLoc = () => (Math.random() * ((canvas.height - (pipeGap + pipeWidth)) - pipeWidth)) + pipeWidth; // emplacement des poteaux
 
 const setup = () => {
   currentScore = 0;
@@ -33,6 +33,7 @@ const setup = () => {
   // setup first 3 pipes
   pipes = Array(3).fill().map((a, i) => [canvas.width + (i * (pipeGap + pipeWidth)), pipeLoc()]);
 }
+
 
 const render = () => {
   // make the pipe and bird moving  c'est le rendu
@@ -55,10 +56,39 @@ const render = () => {
     ctx.font = "bold 30px courier";
   }
  
+//affichage des tuyaux du haut et bas
+if(gamePlaying === true){
+    pipes.map(pipe => {
+        pipe[0] -= speed;
 
-  window.requestAnimationFrame(render);
+        ctx.drawImage(img, 432, 588 - pipe[1], pipeWidth, pipe[1], pipe[0], 0 ,pipeWidth, pipe[1]);
+        ctx.drawImage(img, 432 + pipeWidth, 108,pipeWidth, canvas.height- pipe[1] + pipeGap, pipe[0], pipe[1] + pipeGap, pipeWidth, canvas.height - pipe[1] + pipeGap);
+    if(pipe[0] <= -pipeWidth){
+        currentScore++;
+        bestScore = Math.max(bestScore, currentScore);
+
+        // remove pipe  plus create new one
+
+    pipes = [...pipes.slice(1), [pipes[pipes.length-1][0] + pipeGap + pipeWidth, pipeLoc()]];
+    }
+
+    //fin de partie si crash poteau
+    if([
+        pipe[0]<= cTenth + size[0],
+        pipe[0] + pipeWidth >= cTenth,
+        pipe[1] > flyHeight || pipe[1] + pipeGap < flyHeight + size[1]
+    ].every(elem => elem)) {
+        gamePlaying = false;
+        setup();
+    }
+    })
 }
 
+document.getElementById('bestScore').innerHTML = `Meilleur : ${bestScore}`;
+document.getElementById('currentscore').innerHTML = `Actuel : ${currentScore}`;
+  window.requestAnimationFrame(render);
+}
+setup();
 img.onload = render;
 
 document.addEventListener('click', () => gamePlaying = true);
